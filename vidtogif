@@ -12,7 +12,10 @@ usage() {
 	cat <<EOF
 Usage: vidtogif [options] FILE ...
 
-    -h, --help
+  -h, --help         shows this help menu
+  -o, --overwrite    overwrites output gifs, skips creating gifs otherwise
+  -v, --verbose      verbose mode
+  -w, --width [NUM]  set the output gif width (default 480)
 EOF
 }
 
