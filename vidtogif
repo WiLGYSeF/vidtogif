@@ -97,6 +97,12 @@ for fname in "$@"; do
 	done
 
 	[ $verbose -eq 1 ] && echo -e "\n  converting frames to gif..."
+
+	if [ $OVERWRITE -eq 0 ] && [ -f "$outfname" ]; then
+		rm -r "$tmpdir"
+		continue
+	fi
+
 	ffmpeg ${ffmpeg_options[@]} -f image2 -framerate "$frame_rate" -i "$tmpdir"/"$IMG_FORMAT" "$outfname"
 
 	rm -r "$tmpdir"
