@@ -43,14 +43,19 @@ while true; do
 	esac
 done
 
+fcount=0
+fskipped=0
+
 for fname in "$@"; do
 	outfname="${fname}.gif"
+	((fcount++))
 
 	if [ $OVERWRITE -eq 0 ] && [ -f "$outfname" ]; then
+		((fskipped++))
 		continue
 	fi
 
-	[ $verbose -eq 1 ] && echo "$fname"
+	[ $verbose -eq 1 ] && echo "$fcount / $#: $fname"
 
 	duration=$(ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "$fname")
 	duration=${duration%.*}
@@ -96,3 +101,5 @@ for fname in "$@"; do
 
 	rm -r "$tmpdir"
 done
+
+[ $fskipped -gt 0 ] && [ $verbose -eq 1 ] && echo "skipped $fskipped files."
