@@ -81,9 +81,8 @@ for fname in "$@"; do
 	tmpdir=$(mktemp -d)
 
 	loop_num=$(($duration / $time_skip))
-	[ $loop_num -eq 0 ] && ((loop_num++))
+	[ $loop_num -eq 0 ] && loop_num=1
 
-	[ $verbose -eq 1 ] && echo -n "  extracting frames..."
 	for ((i = 0; i < $loop_num; i++)); do
 		ip1=$(($i + 1))
 		[ $verbose -eq 1 ] && echo -en "\r  extracting frame $ip1 / $loop_num ..."
@@ -91,9 +90,8 @@ for fname in "$@"; do
 		image_name=$(printf "$IMG_FORMAT" "$ip1")
 		ffmpeg ${ffmpeg_options[@]} -ss "$(($i * $time_skip))" -i "$fname" -vf "scale=${SCALE_WIDTH}:-1" -frames:v 1 "$tmpdir"/"$image_name"
 	done
-	[ $verbose -eq 1 ] && echo ""
 
-	[ $verbose -eq 1 ] && echo "  converting frames to gif..."
+	[ $verbose -eq 1 ] && echo -e "\n  converting frames to gif..."
 	ffmpeg ${ffmpeg_options[@]} -f image2 -framerate "$frame_rate" -i "$tmpdir"/"$IMG_FORMAT" "$outfname"
 
 	rm -r "$tmpdir"
