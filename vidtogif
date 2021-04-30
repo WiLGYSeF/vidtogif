@@ -8,13 +8,19 @@ FRAME_RATE=0
 
 OVERWRITE=0
 
-options=$(getopt -o ovw: --long overwrite,verbose,width: -- "$@")
+usage() {
+	echo "Usage: vidtogif "
+}
+
+options=$(getopt -n vidtogif -o hovw: --long help,overwrite,verbose,width: -- "$@")
 eval set -- "$options"
 
 verbose=0
 
 while true; do
 	case "$1" in
+		-h | --help)
+			usage ; exit 0 ;;
 		-o | --overwrite)
 			OVERWRITE=1
 			shift ;;
