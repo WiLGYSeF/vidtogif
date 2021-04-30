@@ -9,12 +9,17 @@ FRAME_RATE=0
 OVERWRITE=0
 
 usage() {
-	echo "Usage: vidtogif "
+	cat <<EOF
+Usage: vidtogif [options] FILE ...
+
+    -h, --help
+EOF
 }
 
 options=$(getopt -n vidtogif -o hovw: --long help,overwrite,verbose,width: -- "$@")
 eval set -- "$options"
 
+ffmpeg_options=("-hide_banner" "-loglevel error")
 verbose=0
 
 while true; do
@@ -22,6 +27,7 @@ while true; do
 		-h | --help)
 			usage ; exit 0 ;;
 		-o | --overwrite)
+			ffmpeg_options+=("-y")
 			OVERWRITE=1
 			shift ;;
 		-v | --verbose)
@@ -80,12 +86,12 @@ for fname in "$@"; do
 		[ $verbose -eq 1 ] && echo -en "\r  extracting frame $ip1 / $loop_num ..."
 
 		image_name=$(printf "$IMG_FORMAT" "$ip1")
-		ffmpeg -hide_banner -loglevel error -ss "$(($i * $time_skip))" -i "$fname" -vf "scale=${SCALE_WIDTH}:-1" -frames:v 1 "$tmpdir"/"$image_name"
+		ffmpeg ${ffmpeg_options[@]} -ss "$(($i * $time_skip))" -i "$fname" -vf "scale=${SCALE_WIDTH}:-1" -frames:v 1 "$tmpdir"/"$image_name"
 	done
 	[ $verbose -eq 1 ] && echo ""
 
 	[ $verbose -eq 1 ] && echo "  converting frames to gif..."
-	ffmpeg -hide_banner -loglevel error -f image2 -framerate "$frame_rate" -i "$tmpdir"/"$IMG_FORMAT" "$outfname"
+	ffmpeg ${ffmpeg_options[@]} -f image2 -framerate "$frame_rate" -i "$tmpdir"/"$IMG_FORMAT" "$outfname"
 
 	rm -r "$tmpdir"
 done
