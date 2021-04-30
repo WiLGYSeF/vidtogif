@@ -81,11 +81,11 @@ for fname in "$@"; do
 
 		image_name=$(printf "$IMG_FORMAT" "$ip1")
 		ffmpeg -hide_banner -loglevel error -ss "$(($i * $time_skip))" -i "$fname" -vf "scale=${SCALE_WIDTH}:-1" -frames:v 1 "$tmpdir"/"$image_name"
-    done
-    [ $verbose -eq 1 ] && echo ""
+	done
+	[ $verbose -eq 1 ] && echo ""
 
-    [ $verbose -eq 1 ] && echo "  converting frames to gif..."
-    ffmpeg -hide_banner -loglevel error -f image2 -framerate "$frame_rate" -i "$tmpdir"/"$IMG_FORMAT" "$outfname"
+	[ $verbose -eq 1 ] && echo "  converting frames to gif..."
+	ffmpeg -hide_banner -loglevel error -f image2 -framerate "$frame_rate" -i "$tmpdir"/"$IMG_FORMAT" "$outfname"
 
-    rm -r "$tmpdir"
+	rm -r "$tmpdir"
 done
