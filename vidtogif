@@ -8,6 +8,26 @@ FRAME_RATE=0
 
 OVERWRITE=0
 
+options=$(getopt -o ovw: -- "$@")
+eval set -- "$options"
+
+verbose=0
+
+while true; do
+	case "$1" in
+		-o)
+			OVERWRITE=1
+			shift ;;
+		-v)
+			verbose=1
+			shift ;;
+		-w)
+			SCALE_WIDTH="$2"
+			shift 2 ;;
+		--) shift; break ;;
+	esac
+done
+
 for fname in "$@"; do
 	outfname="${fname}.gif"
 
@@ -15,7 +35,7 @@ for fname in "$@"; do
 		continue
 	fi
 
-	echo "$fname"
+	[ $verbose -eq 1 ] && echo "$fname"
 
 	duration=$(ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "$fname")
 	duration=${duration%.*}
@@ -48,17 +68,17 @@ for fname in "$@"; do
 	loop_num=$(($duration / $time_skip))
 	[ $loop_num -eq 0 ] && ((loop_num++))
 
-	echo -n "  extracting frames..."
+	[ $verbose -eq 1 ] && echo -n "  extracting frames..."
 	for ((i = 0; i < $loop_num; i++)); do
 		ip1=$(($i + 1))
-		echo -en "\r  extracting frame $ip1 / $loop_num ..."
+		[ $verbose -eq 1 ] && echo -en "\r  extracting frame $ip1 / $loop_num ..."
 
 		image_name=$(printf "$IMG_FORMAT" "$ip1")
 		ffmpeg -hide_banner -loglevel error -ss "$(($i * $time_skip))" -i "$fname" -vf "scale=${SCALE_WIDTH}:-1" -frames:v 1 "$tmpdir"/"$image_name"
     done
-    echo ""
+    [ $verbose -eq 1 ] && echo ""
 
-    echo "  converting frames to gif..."
+    [ $verbose -eq 1 ] && echo "  converting frames to gif..."
     ffmpeg -hide_banner -loglevel error -f image2 -framerate "$frame_rate" -i "$tmpdir"/"$IMG_FORMAT" "$outfname"
 
     rm -r "$tmpdir"
