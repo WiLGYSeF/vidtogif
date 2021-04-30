@@ -8,20 +8,20 @@ FRAME_RATE=0
 
 OVERWRITE=0
 
-options=$(getopt -o ovw: -- "$@")
+options=$(getopt -o ovw: --long overwrite,verbose,width: -- "$@")
 eval set -- "$options"
 
 verbose=0
 
 while true; do
 	case "$1" in
-		-o)
+		-o | --overwrite)
 			OVERWRITE=1
 			shift ;;
-		-v)
+		-v | --verbose)
 			verbose=1
 			shift ;;
-		-w)
+		-w | --width)
 			SCALE_WIDTH="$2"
 			shift 2 ;;
 		--) shift; break ;;
