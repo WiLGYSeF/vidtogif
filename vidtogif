@@ -1,0 +1,65 @@
+#!/bin/bash
+
+IMG_FORMAT="img_%04d.jpg"
+
+SCALE_WIDTH=480
+TIME_SKIP=0
+FRAME_RATE=0
+
+OVERWRITE=0
+
+for fname in "$@"; do
+	outfname="${fname}.gif"
+
+	if [ $OVERWRITE -eq 0 ] && [ -f "$outfname" ]; then
+		continue
+	fi
+
+	echo "$fname"
+
+	duration=$(ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "$fname")
+	duration=${duration%.*}
+
+	if [ $duration -lt 300 ]; then
+		time_skip=15
+		frame_rate=2
+	elif [ $duration -lt 600 ]; then
+		time_skip=15
+		frame_rate=3
+	elif [ $duration -lt 1200 ]; then
+		time_skip=30
+		frame_rate=4
+	elif [ $duration -lt 1800 ]; then
+		time_skip=30
+		frame_rate=5
+	elif [ $duration -lt 3600 ]; then
+		time_skip=60
+		frame_rate=6
+	else
+		time_skip=120
+		frame_rate=8
+	fi
+
+	[ $TIME_SKIP -gt 0 ] && time_skip=$TIME_SKIP
+	[ $FRAME_RATE -gt 0 ] && frame_rate=$FRAME_RATE
+
+	tmpdir=$(mktemp -d)
+
+	loop_num=$(($duration / $time_skip))
+	[ $loop_num -eq 0 ] && ((loop_num++))
+
+	echo -n "  extracting frames..."
+	for ((i = 0; i < $loop_num; i++)); do
+		ip1=$(($i + 1))
+		echo -en "\r  extracting frame $ip1 / $loop_num ..."
+
+		image_name=$(printf "$IMG_FORMAT" "$ip1")
+		ffmpeg -hide_banner -loglevel error -ss "$(($i * $time_skip))" -i "$fname" -vf "scale=${SCALE_WIDTH}:-1" -frames:v 1 "$tmpdir"/"$image_name"
+    done
+    echo ""
+
+    echo "  converting frames to gif..."
+    ffmpeg -hide_banner -loglevel error -f image2 -framerate "$frame_rate" -i "$tmpdir"/"$IMG_FORMAT" "$outfname"
+
+    rm -r "$tmpdir"
+done
