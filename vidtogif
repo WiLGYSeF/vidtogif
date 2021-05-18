@@ -14,15 +14,17 @@ Usage: vidtogif [options] FILE ...
 
   -h, --help         shows this help menu
   -o, --overwrite    overwrites output gifs, skips creating gifs otherwise
+  -t, --timestamp    insert a timestamp in the top-left corner
   -v, --verbose      verbose mode
   -w, --width [NUM]  set the output gif width (default 480)
 EOF
 }
 
-options=$(getopt -n vidtogif -o hovw: --long help,overwrite,verbose,width: -- "$@")
+options=$(getopt -n vidtogif -o hotvw: --long help,overwrite,verbose,width: -- "$@")
 eval set -- "$options"
 
 ffmpeg_options=("-hide_banner" "-loglevel error")
+insert_timestamp=0
 verbose=0
 
 while true; do
@@ -32,6 +34,9 @@ while true; do
 		-o | --overwrite)
 			ffmpeg_options+=("-y")
 			OVERWRITE=1
+			shift ;;
+		-t | --timestamp)
+			insert_timestamp=1
 			shift ;;
 		-v | --verbose)
 			verbose=1
@@ -59,6 +64,8 @@ for fname in "$@"; do
 
 	duration=$(ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "$fname")
 	duration=${duration%.*}
+
+	[ -z "$duration" ] && continue
 
 	if [ $duration -lt 300 ]; then
 		time_skip=15
@@ -90,10 +97,17 @@ for fname in "$@"; do
 
 	for ((i = 0; i < $loop_num; i++)); do
 		ip1=$(($i + 1))
+		image_name=$(printf "$IMG_FORMAT" "$ip1")
+		seconds=$(($i * $time_skip))
+
 		[ $verbose -eq 1 ] && echo -en "\r  extracting frame $ip1 / $loop_num ..."
 
-		image_name=$(printf "$IMG_FORMAT" "$ip1")
-		ffmpeg ${ffmpeg_options[@]} -ss "$(($i * $time_skip))" -i "$fname" -vf "scale=${SCALE_WIDTH}:-1" -frames:v 1 "$tmpdir"/"$image_name"
+		if [ $insert_timestamp -eq 1 ]; then
+			hms="$(printf "%02d\:%02d\:%02d" $(($seconds / 3600)) $((($seconds % 3600) / 60)) $(($seconds % 60)))"
+			ffmpeg ${ffmpeg_options[@]} -ss "$seconds" -i "$fname" -vf "scale=${SCALE_WIDTH}:-1, drawtext=text='$hms': x=5: y=lh: fontcolor=white: box=1: boxcolor=0x00000000@1" -frames:v 1 "$tmpdir"/"$image_name"
+		else
+			ffmpeg ${ffmpeg_options[@]} -ss "$seconds" -i "$fname" -vf "scale=${SCALE_WIDTH}:-1" -frames:v 1 "$tmpdir"/"$image_name"
+		fi
 	done
 
 	[ $verbose -eq 1 ] && echo -e "\n  converting frames to gif..."
