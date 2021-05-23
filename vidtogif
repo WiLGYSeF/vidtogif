@@ -48,6 +48,7 @@ while true; do
 	esac
 done
 
+ftotal=${##}
 fcount=0
 fskipped=0
 
@@ -56,11 +57,12 @@ for fname in "$@"; do
 	((fcount++))
 
 	if [ $OVERWRITE -eq 0 ] && [ -f "$outfname" ]; then
+		[ $verbose -eq 1 ] && echo "$(printf "%${ftotal}d" $fcount) / $#: skipping $fname"
 		((fskipped++))
 		continue
 	fi
 
-	[ $verbose -eq 1 ] && echo "$fcount / $#: $fname"
+	[ $verbose -eq 1 ] && echo "$(printf "%${ftotal}d" $fcount) / $#: $fname"
 
 	duration=$(ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "$fname")
 	duration=${duration%.*}
