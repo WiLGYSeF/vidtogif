@@ -48,6 +48,11 @@ while true; do
 	esac
 done
 
+if ! command -v ffprobe >/dev/null || ! command -v ffmpeg >/dev/null; then
+	echo "error: ffprobe and ffmpeg are required!" >&2
+	exit 1
+fi
+
 ftotal=${##}
 fcount=0
 fskipped=0
