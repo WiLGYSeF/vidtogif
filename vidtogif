@@ -13,6 +13,7 @@ usage() {
 Usage: vidtogif [options] FILE ...
 
   -h, --help         shows this help menu
+  -l, --loop         loop the output gif (default no loop)
   -o, --overwrite    overwrites output gifs, skips creating gifs otherwise
   -t, --timestamp    insert a timestamp in the top-left corner
   -v, --verbose      verbose mode
@@ -20,17 +21,21 @@ Usage: vidtogif [options] FILE ...
 EOF
 }
 
-options=$(getopt -n vidtogif -o hotvw: --long help,overwrite,verbose,width: -- "$@")
+options=$(getopt -n vidtogif -o hlotvw: --long help,loop,overwrite,verbose,width: -- "$@")
 eval set -- "$options"
 
 ffmpeg_options=("-hide_banner" "-loglevel error")
 insert_timestamp=0
+loop_gif=0
 verbose=0
 
 while true; do
 	case "$1" in
 		-h | --help)
 			usage ; exit 0 ;;
+		-l | --loop)
+			loop_gif=1
+			shift ;;
 		-o | --overwrite)
 			ffmpeg_options+=("-y")
 			OVERWRITE=1
@@ -52,6 +57,9 @@ if ! command -v ffprobe >/dev/null || ! command -v ffmpeg >/dev/null; then
 	echo "error: ffprobe and ffmpeg are required!" >&2
 	exit 1
 fi
+
+ffmpeg_loop_gif="-loop -1"
+[ $loop_gif -eq 1 ] && ffmpeg_loop_gif=
 
 ftotal=${##}
 fcount=0
@@ -126,7 +134,7 @@ for fname in "$@"; do
 		continue
 	fi
 
-	ffmpeg ${ffmpeg_options[@]} -f image2 -framerate "$frame_rate" -i "$tmpdir"/"$IMG_FORMAT" "$outfname"
+	ffmpeg ${ffmpeg_options[@]} -f image2 -framerate "$frame_rate" -i "$tmpdir"/"$IMG_FORMAT" $ffmpeg_loop_gif "$outfname"
 
 	rm -r "$tmpdir"
 done
