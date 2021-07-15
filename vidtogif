@@ -74,19 +74,19 @@ for fname in "$@"; do
 
 	[ -z "$duration" ] && continue
 
-	if [ $duration -lt 300 ]; then
+	if [ "$duration" -lt 300 ]; then
 		time_skip=15
 		frame_rate=2
-	elif [ $duration -lt 600 ]; then
+	elif [ "$duration" -lt 600 ]; then
 		time_skip=15
 		frame_rate=3
-	elif [ $duration -lt 1200 ]; then
+	elif [ "$duration" -lt 1200 ]; then
 		time_skip=30
 		frame_rate=4
-	elif [ $duration -lt 1800 ]; then
+	elif [ "$duration" -lt 1800 ]; then
 		time_skip=30
 		frame_rate=5
-	elif [ $duration -lt 3600 ]; then
+	elif [ "$duration" -lt 3600 ]; then
 		time_skip=60
 		frame_rate=6
 	else
@@ -99,18 +99,18 @@ for fname in "$@"; do
 
 	tmpdir=$(mktemp -d)
 
-	loop_num=$(($duration / $time_skip))
+	loop_num=$((duration / time_skip))
 	[ $loop_num -eq 0 ] && loop_num=1
 
-	for ((i = 0; i < $loop_num; i++)); do
-		ip1=$(($i + 1))
+	for ((i = 0; i < loop_num; i++)); do
+		ip1=$((i + 1))
 		image_name=$(printf "$IMG_FORMAT" "$ip1")
-		seconds=$(($i * $time_skip))
+		seconds=$((i * time_skip))
 
 		[ $verbose -eq 1 ] && echo -en "\r  extracting frame $ip1 / $loop_num ..."
 
 		if [ $insert_timestamp -eq 1 ]; then
-			hms="$(printf "%02d\:%02d\:%02d" $(($seconds / 3600)) $((($seconds % 3600) / 60)) $(($seconds % 60)))"
+			hms=$(printf "%02d\:%02d\:%02d" $((seconds / 3600)) $(((seconds % 3600) / 60)) $((seconds % 60)))
 			ffmpeg ${ffmpeg_options[@]} -ss "$seconds" -i "$fname" -vf "scale=${SCALE_WIDTH}:-1, drawtext=text='$hms': x=5: y=lh: fontcolor=white: box=1: boxcolor=0x00000000@1" -frames:v 1 "$tmpdir"/"$image_name"
 		else
 			ffmpeg ${ffmpeg_options[@]} -ss "$seconds" -i "$fname" -vf "scale=${SCALE_WIDTH}:-1" -frames:v 1 "$tmpdir"/"$image_name"
