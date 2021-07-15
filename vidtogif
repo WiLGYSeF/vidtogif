@@ -1,6 +1,6 @@
 #!/bin/bash
 
-IMG_FORMAT="img_%04d.jpg"
+IMG_FORMAT="img_%06d.jpg"
 
 SCALE_WIDTH=480
 TIME_SKIP=0
