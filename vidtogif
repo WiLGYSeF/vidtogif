@@ -114,12 +114,13 @@ for fname in "$@"; do
 
 		[ $verbose -eq 1 ] && echo -en "\r  extracting frame $ip1 / $loop_num ..."
 
+		ffmpeg_vf="scale=${SCALE_WIDTH}:-1"
 		if [ $insert_timestamp -eq 1 ]; then
 			hms=$(printf "%02d\:%02d\:%02d" $((seconds / 3600)) $(((seconds % 3600) / 60)) $((seconds % 60)))
-			ffmpeg ${ffmpeg_options[@]} -ss "$seconds" -i "$fname" -vf "scale=${SCALE_WIDTH}:-1, drawtext=text='$hms': x=5: y=lh: fontcolor=white: box=1: boxcolor=0x00000000@1" -frames:v 1 "$tmpdir"/"$image_name"
-		else
-			ffmpeg ${ffmpeg_options[@]} -ss "$seconds" -i "$fname" -vf "scale=${SCALE_WIDTH}:-1" -frames:v 1 "$tmpdir"/"$image_name"
+			ffmpeg_vf="${ffmpeg_vf}, drawtext=text='$hms': x=5: y=lh: fontcolor=white: box=1: boxcolor=0x00000000@1"
 		fi
+
+		ffmpeg ${ffmpeg_options[@]} -ss "$seconds" -i "$fname" -vf "$ffmpeg_vf" -frames:v 1 "$tmpdir"/"$image_name"
 	done
 
 	[ $verbose -eq 1 ] && echo -e "\n  converting frames to gif..."
