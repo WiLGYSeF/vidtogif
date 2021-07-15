@@ -26,7 +26,7 @@ eval set -- "$options"
 
 ffmpeg_options=("-hide_banner" "-loglevel error")
 insert_timestamp=0
-loop_gif=0
+ffmpeg_loop="-1"
 verbose=0
 
 while true; do
@@ -34,7 +34,7 @@ while true; do
 		-h | --help)
 			usage ; exit 0 ;;
 		-l | --loop)
-			loop_gif=1
+			ffmpeg_loop="0"
 			shift ;;
 		-o | --overwrite)
 			ffmpeg_options+=("-y")
@@ -57,9 +57,6 @@ if ! command -v ffprobe >/dev/null || ! command -v ffmpeg >/dev/null; then
 	echo "error: ffprobe and ffmpeg are required!" >&2
 	exit 1
 fi
-
-ffmpeg_loop_gif="-loop -1"
-[ $loop_gif -eq 1 ] && ffmpeg_loop_gif=
 
 ftotal=${##}
 fcount=0
@@ -134,7 +131,7 @@ for fname in "$@"; do
 		continue
 	fi
 
-	ffmpeg ${ffmpeg_options[@]} -f image2 -framerate "$frame_rate" -i "$tmpdir"/"$IMG_FORMAT" $ffmpeg_loop_gif "$outfname"
+	ffmpeg ${ffmpeg_options[@]} -f image2 -framerate "$frame_rate" -i "$tmpdir"/"$IMG_FORMAT" -loop "$ffmpeg_loop" "$outfname"
 
 	rm -r "$tmpdir"
 done
