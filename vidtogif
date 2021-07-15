@@ -120,6 +120,8 @@ for fname in "$@"; do
 	[ $verbose -eq 1 ] && echo -e "\n  converting frames to gif..."
 
 	if [ $OVERWRITE -eq 0 ] && [ -f "$outfname" ]; then
+		[ $verbose -eq 1 ] && echo "$(printf "%${ftotal}d" $fcount) / $#: skipping $fname"
+
 		rm -r "$tmpdir"
 		continue
 	fi
