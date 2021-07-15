@@ -58,7 +58,7 @@ if ! command -v ffprobe >/dev/null || ! command -v ffmpeg >/dev/null; then
 	exit 1
 fi
 
-ftotal=${##}
+fclength=${##}
 fcount=0
 fskipped=0
 
@@ -67,12 +67,12 @@ for fname in "$@"; do
 	((fcount++))
 
 	if [ $OVERWRITE -eq 0 ] && [ -f "$outfname" ]; then
-		[ $verbose -ge 1 ] && printf "%${ftotal}d / %d: skipping %s\n" "$fcount" "$#" "$fname"
+		[ $verbose -ge 1 ] && printf "%${fclength}d / %d: skipping %s\n" "$fcount" "$#" "$fname"
 		((fskipped++))
 		continue
 	fi
 
-	[ $verbose -ge 1 ] && printf "%${ftotal}d / %d: %s\n" "$fcount" "$#" "$fname"
+	[ $verbose -ge 1 ] && printf "%${fclength}d / %d: %s\n" "$fcount" "$#" "$fname"
 
 	duration=$(ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "$fname")
 	duration=${duration%.*}
@@ -126,7 +126,7 @@ for fname in "$@"; do
 	[ $verbose -ge 2 ] && echo -e "\n  converting frames to gif..."
 
 	if [ $OVERWRITE -eq 0 ] && [ -f "$outfname" ]; then
-		[ $verbose -ge 1 ] && printf "%${ftotal}d / %d: skipping %s\n" "$fcount" "$#" "$fname"
+		[ $verbose -ge 1 ] && printf "%${fclength}d / %d: skipping %s\n" "$fcount" "$#" "$fname"
 
 		rm -r "$tmpdir"
 		continue
