@@ -44,7 +44,7 @@ while true; do
 			insert_timestamp=1
 			shift ;;
 		-v | --verbose)
-			verbose=1
+			((verbose++))
 			shift ;;
 		-w | --width)
 			SCALE_WIDTH="$2"
@@ -58,7 +58,7 @@ if ! command -v ffprobe >/dev/null || ! command -v ffmpeg >/dev/null; then
 	exit 1
 fi
 
-ftotal=${##}
+fclength=${##}
 fcount=0
 fskipped=0
 
@@ -67,12 +67,12 @@ for fname in "$@"; do
 	((fcount++))
 
 	if [ $OVERWRITE -eq 0 ] && [ -f "$outfname" ]; then
-		[ $verbose -eq 1 ] && echo "$(printf "%${ftotal}d" $fcount) / $#: skipping $fname"
+		[ $verbose -ge 1 ] && printf "%${fclength}d / %d: skipping %s\n" "$fcount" "$#" "$fname"
 		((fskipped++))
 		continue
 	fi
 
-	[ $verbose -eq 1 ] && echo "$(printf "%${ftotal}d" $fcount) / $#: $fname"
+	[ $verbose -ge 1 ] && printf "%${fclength}d / %d: %s\n" "$fcount" "$#" "$fname"
 
 	duration=$(ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "$fname")
 	duration=${duration%.*}
@@ -112,7 +112,7 @@ for fname in "$@"; do
 		image_name=$(printf "$IMG_FORMAT" "$ip1")
 		seconds=$((i * time_skip))
 
-		[ $verbose -eq 1 ] && echo -en "\r  extracting frame $ip1 / $loop_num ..."
+		[ $verbose -ge 2 ] && echo -en "\r  extracting frame $ip1 / $loop_num ..."
 
 		ffmpeg_vf="scale=${SCALE_WIDTH}:-1"
 		if [ $insert_timestamp -eq 1 ]; then
@@ -123,10 +123,10 @@ for fname in "$@"; do
 		ffmpeg ${ffmpeg_options[@]} -ss "$seconds" -i "$fname" -vf "$ffmpeg_vf" -frames:v 1 "$tmpdir"/"$image_name"
 	done
 
-	[ $verbose -eq 1 ] && echo -e "\n  converting frames to gif..."
+	[ $verbose -ge 2 ] && echo -e "\n  converting frames to gif..."
 
 	if [ $OVERWRITE -eq 0 ] && [ -f "$outfname" ]; then
-		[ $verbose -eq 1 ] && echo "$(printf "%${ftotal}d" $fcount) / $#: skipping $fname"
+		[ $verbose -ge 1 ] && printf "%${fclength}d / %d: skipping %s\n" "$fcount" "$#" "$fname"
 
 		rm -r "$tmpdir"
 		continue
