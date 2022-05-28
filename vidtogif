@@ -2,7 +2,8 @@
 
 IMG_FORMAT="img_%06d.jpg"
 
-SCALE_WIDTH=480
+SCALE_WIDTH=640
+SCALE_HEIGHT=-1
 TIME_SKIP=0
 FRAME_RATE=0
 
@@ -12,16 +13,17 @@ usage() {
     cat <<EOF
 Usage: vidtogif [options] FILE ...
 
-  -h, --help         shows this help menu
-  -l, --loop         loop the output gif (default no loop)
-  -o, --overwrite    overwrites output gifs, skips creating gifs otherwise
-  -t, --timestamp    insert a timestamp in the top-left corner
-  -v, --verbose      verbose mode
-  -w, --width [NUM]  set the output gif width (default 480)
+  -h, --help          shows this help menu
+  -l, --loop          loop the output gif (default no loop)
+  -o, --overwrite     overwrites output gifs, skips creating gifs otherwise
+  -t, --timestamp     insert a timestamp in the top-left corner
+  -v, --verbose       verbose mode
+  -w, --width [NUM]   set the output gif width (default 640)
+      --height [NUM]  set the output gif height (default -1)
 EOF
 }
 
-options=$(getopt -n vidtogif -o hlotvw: --long help,loop,overwrite,verbose,width: -- "$@")
+options=$(getopt -n vidtogif -o hlotvw: --long help,loop,overwrite,verbose,width:,height: -- "$@")
 eval set -- "$options"
 
 ffmpeg_options=("-hide_banner" "-loglevel error")
@@ -32,7 +34,8 @@ verbose=0
 while true; do
     case "$1" in
         -h | --help)
-            usage ; exit 0 ;;
+            usage
+            exit 0 ;;
         -l | --loop)
             ffmpeg_loop="0"
             shift ;;
@@ -48,6 +51,9 @@ while true; do
             shift ;;
         -w | --width)
             SCALE_WIDTH="$2"
+            shift 2 ;;
+        --height)
+            SCALE_HEIGHT="$2"
             shift 2 ;;
         --) shift; break ;;
     esac
@@ -114,7 +120,7 @@ for fname in "$@"; do
 
         [ $verbose -ge 2 ] && echo -en "\r  extracting frame $ip1 / $loop_num ..."
 
-        ffmpeg_vf="scale=${SCALE_WIDTH}:-1"
+        ffmpeg_vf="scale=${SCALE_WIDTH}:${SCALE_HEIGHT}"
         if [ $insert_timestamp -eq 1 ]; then
             hms=$(printf "%02d\:%02d\:%02d" $((seconds / 3600)) $(((seconds % 3600) / 60)) $((seconds % 60)))
             ffmpeg_vf="${ffmpeg_vf}, drawtext=text='$hms': x=5: y=lh: fontcolor=white: box=1: boxcolor=0x00000000@1"
