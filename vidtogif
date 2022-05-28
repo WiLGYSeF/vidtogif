@@ -9,7 +9,7 @@ FRAME_RATE=0
 OVERWRITE=0
 
 usage() {
-	cat <<EOF
+    cat <<EOF
 Usage: vidtogif [options] FILE ...
 
   -h, --help         shows this help menu
@@ -30,32 +30,32 @@ ffmpeg_loop="-1"
 verbose=0
 
 while true; do
-	case "$1" in
-		-h | --help)
-			usage ; exit 0 ;;
-		-l | --loop)
-			ffmpeg_loop="0"
-			shift ;;
-		-o | --overwrite)
-			ffmpeg_options+=("-y")
-			OVERWRITE=1
-			shift ;;
-		-t | --timestamp)
-			insert_timestamp=1
-			shift ;;
-		-v | --verbose)
-			((verbose++))
-			shift ;;
-		-w | --width)
-			SCALE_WIDTH="$2"
-			shift 2 ;;
-		--) shift; break ;;
-	esac
+    case "$1" in
+        -h | --help)
+            usage ; exit 0 ;;
+        -l | --loop)
+            ffmpeg_loop="0"
+            shift ;;
+        -o | --overwrite)
+            ffmpeg_options+=("-y")
+            OVERWRITE=1
+            shift ;;
+        -t | --timestamp)
+            insert_timestamp=1
+            shift ;;
+        -v | --verbose)
+            ((verbose++))
+            shift ;;
+        -w | --width)
+            SCALE_WIDTH="$2"
+            shift 2 ;;
+        --) shift; break ;;
+    esac
 done
 
 if ! command -v ffprobe >/dev/null || ! command -v ffmpeg >/dev/null; then
-	echo "error: ffprobe and ffmpeg are required!" >&2
-	exit 1
+    echo "error: ffprobe and ffmpeg are required!" >&2
+    exit 1
 fi
 
 fclength=${##}
@@ -63,78 +63,78 @@ fcount=0
 fskipped=0
 
 for fname in "$@"; do
-	outfname="${fname}.gif"
-	((fcount++))
+    outfname="${fname}.gif"
+    ((fcount++))
 
-	if [ $OVERWRITE -eq 0 ] && [ -f "$outfname" ]; then
-		[ $verbose -ge 1 ] && printf "%${fclength}d / %d: skipping %s\n" "$fcount" "$#" "$fname"
-		((fskipped++))
-		continue
-	fi
+    if [ $OVERWRITE -eq 0 ] && [ -f "$outfname" ]; then
+        [ $verbose -ge 1 ] && printf "%${fclength}d / %d: skipping %s\n" "$fcount" "$#" "$fname"
+        ((fskipped++))
+        continue
+    fi
 
-	[ $verbose -ge 1 ] && printf "%${fclength}d / %d: %s\n" "$fcount" "$#" "$fname"
+    [ $verbose -ge 1 ] && printf "%${fclength}d / %d: %s\n" "$fcount" "$#" "$fname"
 
-	duration=$(ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "$fname")
-	duration=${duration%.*}
+    duration=$(ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "$fname")
+    duration=${duration%.*}
 
-	[ -z "$duration" ] && continue
+    [ -z "$duration" ] && continue
 
-	if [ "$duration" -lt 300 ]; then
-		time_skip=15
-		frame_rate=2
-	elif [ "$duration" -lt 600 ]; then
-		time_skip=15
-		frame_rate=3
-	elif [ "$duration" -lt 1200 ]; then
-		time_skip=30
-		frame_rate=4
-	elif [ "$duration" -lt 1800 ]; then
-		time_skip=30
-		frame_rate=5
-	elif [ "$duration" -lt 3600 ]; then
-		time_skip=60
-		frame_rate=6
-	else
-		time_skip=120
-		frame_rate=8
-	fi
+    if [ "$duration" -lt 300 ]; then
+        time_skip=15
+        frame_rate=2
+    elif [ "$duration" -lt 600 ]; then
+        time_skip=15
+        frame_rate=3
+    elif [ "$duration" -lt 1200 ]; then
+        time_skip=30
+        frame_rate=4
+    elif [ "$duration" -lt 1800 ]; then
+        time_skip=30
+        frame_rate=5
+    elif [ "$duration" -lt 3600 ]; then
+        time_skip=60
+        frame_rate=6
+    else
+        time_skip=120
+        frame_rate=8
+    fi
 
-	[ $TIME_SKIP -gt 0 ] && time_skip=$TIME_SKIP
-	[ $FRAME_RATE -gt 0 ] && frame_rate=$FRAME_RATE
+    [ $TIME_SKIP -gt 0 ] && time_skip=$TIME_SKIP
+    [ $FRAME_RATE -gt 0 ] && frame_rate=$FRAME_RATE
 
-	tmpdir=$(mktemp -d)
+    tmpdir=$(mktemp -d)
 
-	loop_num=$((duration / time_skip))
-	[ $loop_num -eq 0 ] && loop_num=1
+    loop_num=$((duration / time_skip))
+    [ $loop_num -eq 0 ] && loop_num=1
 
-	for ((i = 0; i < loop_num; i++)); do
-		ip1=$((i + 1))
-		image_name=$(printf "$IMG_FORMAT" "$ip1")
-		seconds=$((i * time_skip))
+    for ((i = 0; i < loop_num; i++)); do
+        ip1=$((i + 1))
+        image_name=$(printf "$IMG_FORMAT" "$ip1")
+        seconds=$((i * time_skip))
 
-		[ $verbose -ge 2 ] && echo -en "\r  extracting frame $ip1 / $loop_num ..."
+        [ $verbose -ge 2 ] && echo -en "\r  extracting frame $ip1 / $loop_num ..."
 
-		ffmpeg_vf="scale=${SCALE_WIDTH}:-1"
-		if [ $insert_timestamp -eq 1 ]; then
-			hms=$(printf "%02d\:%02d\:%02d" $((seconds / 3600)) $(((seconds % 3600) / 60)) $((seconds % 60)))
-			ffmpeg_vf="${ffmpeg_vf}, drawtext=text='$hms': x=5: y=lh: fontcolor=white: box=1: boxcolor=0x00000000@1"
-		fi
+        ffmpeg_vf="scale=${SCALE_WIDTH}:-1"
+        if [ $insert_timestamp -eq 1 ]; then
+            hms=$(printf "%02d\:%02d\:%02d" $((seconds / 3600)) $(((seconds % 3600) / 60)) $((seconds % 60)))
+            ffmpeg_vf="${ffmpeg_vf}, drawtext=text='$hms': x=5: y=lh: fontcolor=white: box=1: boxcolor=0x00000000@1"
+        fi
 
-		ffmpeg ${ffmpeg_options[@]} -ss "$seconds" -i "$fname" -vf "$ffmpeg_vf" -frames:v 1 "$tmpdir"/"$image_name"
-	done
+        ffmpeg ${ffmpeg_options[@]} -ss "$seconds" -i "$fname" -vf "$ffmpeg_vf" -frames:v 1 "$tmpdir"/"$image_name"
+    done
 
-	[ $verbose -ge 2 ] && echo -e "\n  converting frames to gif..."
+    [ $verbose -ge 2 ] && echo -e "\n  converting frames to gif..."
 
-	if [ $OVERWRITE -eq 0 ] && [ -f "$outfname" ]; then
-		[ $verbose -ge 1 ] && printf "%${fclength}d / %d: skipping %s\n" "$fcount" "$#" "$fname"
+    if [ $OVERWRITE -eq 0 ] && [ -f "$outfname" ]; then
+        [ $verbose -ge 1 ] && printf "%${fclength}d / %d: skipping %s\n" "$fcount" "$#" "$fname"
 
-		rm -r "$tmpdir"
-		continue
-	fi
+        rm -r "$tmpdir"
+        continue
+    fi
 
-	ffmpeg ${ffmpeg_options[@]} -f image2 -framerate "$frame_rate" -i "$tmpdir"/"$IMG_FORMAT" -loop "$ffmpeg_loop" "$outfname"
+    ffmpeg ${ffmpeg_options[@]} -f image2 -framerate "$frame_rate" -i "$tmpdir"/"$IMG_FORMAT" -loop "$ffmpeg_loop" "$outfname"
 
-	rm -r "$tmpdir"
+    rm -r "$tmpdir"
 done
 
 [ $fskipped -gt 0 ] && [ $verbose -eq 1 ] && echo "skipped $fskipped files."
