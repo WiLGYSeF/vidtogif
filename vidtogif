@@ -2,7 +2,7 @@
 
 IMG_FORMAT="img_%06d.jpg"
 
-SCALE_WIDTH=640
+SCALE_WIDTH=480
 SCALE_HEIGHT=-1
 TIME_SKIP=0
 FRAME_RATE=0
@@ -18,7 +18,7 @@ Usage: vidtogif [options] FILE ...
   -o, --overwrite     overwrites output gifs, skips creating gifs otherwise
   -t, --timestamp     insert a timestamp in the top-left corner
   -v, --verbose       verbose mode
-  -w, --width [NUM]   set the output gif width (default 640)
+  -w, --width [NUM]   set the output gif width (default 480)
       --height [NUM]  set the output gif height (default -1)
 EOF
 }
